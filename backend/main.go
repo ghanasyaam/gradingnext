@@ -16,6 +16,7 @@ type Teacher struct {
 	Department   string `json:"department"`
 	Position     string `json:"position"`
 	ProfilePhoto string `json:"profilePhoto"`
+	Points       int    `json:"points" gorm:"default:0"`
 }
 
 var db *gorm.DB
