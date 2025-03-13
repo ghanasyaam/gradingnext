@@ -122,16 +122,17 @@ const TeacherRegPage: React.FC = () => {
 
         <h2 className="text-xl font-bold text-gray-900 mt-6">Registered Teachers</h2>
         <div className="teacher-list-container border border-gray-400 p-2 rounded mt-2 bg-gray-100 max-h-60 overflow-y-auto">
-          <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 p-2">
-            {teachers.map((teacher) => (
-              <li key={teacher.id} className="flex items-center border border-gray-300 p-3 rounded bg-gray-200">
-                {teacher.profilePhoto && <img src={teacher.profilePhoto} alt="Profile" className="w-12 h-12 rounded-full mr-3 border border-gray-500" />}
-                <div className="text-gray-900">
-                  <strong>{teacher.name}</strong> - {teacher.department} ({teacher.position})
-                </div>
-              </li>
-            ))}
-          </ul>
+        <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 p-2">
+  {teachers.map((teacher) => (
+    <li key={teacher.id} className="flex items-center border border-gray-300 p-3 rounded bg-gray-200">
+      {teacher.profilePhoto && <img src={teacher.profilePhoto} alt="Profile" className="w-12 h-12 rounded-full mr-3 border border-gray-500" />}
+      <div className="text-gray-900">
+        <strong>{teacher.name}</strong> - {teacher.department} ({teacher.position})
+      </div>
+    </li>
+  ))}
+</ul>
+
         </div>
       </div>
     </div>
