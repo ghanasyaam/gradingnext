@@ -7,12 +7,19 @@ import { Card } from "@/components/ui/Card";
 import { CardContent } from "@/components/ui/CardContent";
 import { Button } from "@/components/ui/Button";
 
+interface Role {
+  role: string;
+  points: string;
+  teachers: string[];
+}
+
 interface Event {
   id: number;
   name: string;
   date: string;
   time: string;
   description: string;
+  roles?: Role[]; // Added roles field
 }
 
 const EventPage = () => {
@@ -24,17 +31,16 @@ const EventPage = () => {
   const fetchEvents = async () => {
     try {
       const response = await axios.get<Event[]>("http://localhost:8081/events");
-  
-      console.log("Raw API response:", response.data); // Debugging line
-  
+      console.log("Raw API response:", response.data);
+
       if (!Array.isArray(response.data)) {
         throw new Error("Invalid response format: Expected an array.");
       }
-  
+
       response.data.forEach((event, index) => {
-        console.log(`Event ${index}:`, event); // Log each event
+        console.log(`Event ${index}:`, event);
       });
-  
+
       setEvents(response.data);
     } catch (error) {
       console.error("Error fetching events:", error);
@@ -42,7 +48,6 @@ const EventPage = () => {
       setLoading(false);
     }
   };
-  
 
   // Load events when the page loads
   useEffect(() => {
@@ -69,14 +74,13 @@ const EventPage = () => {
               key={event.id ?? `${event.name}-${index}`}
               className="cursor-pointer transition-transform transform hover:scale-105"
               onClick={() => {
-                if (event.id && typeof event.id === "number") { 
+                if (event.id && typeof event.id === "number") {
                   router.push(`/modify-event/${event.id}`);
                 } else {
                   console.error("Event ID is missing or invalid", event);
                   alert("This event cannot be modified due to missing ID.");
                 }
               }}
-              
             >
               <Card className="bg-white shadow-xl rounded-lg overflow-hidden hover:shadow-2xl transition-transform transform hover:scale-105 cursor-pointer">
                 <CardContent className="p-6 flex flex-col">
@@ -84,6 +88,18 @@ const EventPage = () => {
                   <p className="text-gray-700 text-md mb-1"><strong>Date:</strong> {event.date}</p>
                   <p className="text-gray-700 text-md mb-3"><strong>Time:</strong> {event.time}</p>
                   <p className="text-gray-600 text-md leading-relaxed flex-grow">{event.description}</p>
+                  {event.roles && event.roles.length > 0 && (
+                    <div className="mt-4">
+                      <h3 className="text-lg font-semibold text-gray-800">Roles:</h3>
+                      <ul className="list-disc list-inside text-gray-700">
+                        {event.roles.map((role, roleIndex) => (
+                          <li key={roleIndex}>
+                            <strong>{role.role}:</strong> {role.points} points ({role.teachers.length} teachers)
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

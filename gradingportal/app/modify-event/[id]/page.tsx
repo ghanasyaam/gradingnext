@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 interface Role {
   role: string;
   points: number;
-  teachers: string[];
+  teacherID: string[];
 }
 
 interface Event {
@@ -21,7 +21,7 @@ interface Event {
 }
 
 interface Teacher {
-  id: number;
+  TeacherID: string;
   name: string;
 }
 

@@ -5,17 +5,23 @@ import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 
 interface Teacher {
-  id: number;
   name: string;
+  email: string;
   department: string;
   position: string;
   profilePhoto: string;
 }
 
+const axiosInstance = axios.create({
+  baseURL: '/api', // Ensure Next.js proxy is set up in next.config.js
+  headers: { 'Content-Type': 'application/json' },
+  timeout: 5000,
+});
+
 const TeacherRegPage: React.FC = () => {
   const [formData, setFormData] = useState<Teacher>({
-    id: 0,
     name: '',
+    email: '',
     department: '',
     position: '',
     profilePhoto: '',
@@ -40,9 +46,9 @@ const TeacherRegPage: React.FC = () => {
       setTeachers(response.data || []);
     } catch (error) {
       console.error('Error fetching teachers:', error);
-      setTeachers([]);
     }
   };
+  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -68,9 +74,9 @@ const TeacherRegPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8081/teachers', formData);
+      await axiosInstance.post('/teachers', formData);
       alert('Teacher added successfully!');
-      setFormData({ id: 0, name: '', department: '', position: '', profilePhoto: '' });
+      setFormData({ name: '', email: '', department: '', position: '', profilePhoto: '' });
       fetchTeachers();
     } catch (error) {
       console.error('Error adding teacher:', error);
@@ -87,6 +93,9 @@ const TeacherRegPage: React.FC = () => {
               <label className="block font-medium text-gray-800">Faculty Name:</label>
               <input type="text" name="name" value={formData.name} onChange={handleChange} required className="w-full p-2 border border-gray-400 rounded bg-gray-100 text-gray-900" />
               
+              <label className="block font-medium text-gray-800 mt-2">Email:</label>
+              <input type="email" name="email" value={formData.email} onChange={handleChange} required className="w-full p-2 border border-gray-400 rounded bg-gray-100 text-gray-900" />
+
               <label className="block font-medium text-gray-800 mt-2">Department:</label>
               <select name="department" value={formData.department} onChange={handleChange} required className="w-full p-2 border border-gray-400 rounded bg-gray-100 text-gray-900">
                 <option value="">Select Department</option>
@@ -121,18 +130,17 @@ const TeacherRegPage: React.FC = () => {
         </form>
 
         <h2 className="text-xl font-bold text-gray-900 mt-6">Registered Teachers</h2>
-        <div className="teacher-list-container border border-gray-400 p-2 rounded mt-2 bg-gray-100 max-h-60 overflow-y-auto">
-        <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 p-2">
-  {teachers.map((teacher) => (
-    <li key={teacher.id} className="flex items-center border border-gray-300 p-3 rounded bg-gray-200">
-      {teacher.profilePhoto && <img src={teacher.profilePhoto} alt="Profile" className="w-12 h-12 rounded-full mr-3 border border-gray-500" />}
-      <div className="text-gray-900">
-        <strong>{teacher.name}</strong> - {teacher.department} ({teacher.position})
-      </div>
-    </li>
-  ))}
-</ul>
-
+        <div className="border border-gray-400 p-2 rounded mt-2 bg-gray-100 max-h-60 overflow-y-auto">
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 p-2">
+            {teachers.map((teacher) => (
+              <li key={teacher.email} className="flex items-center border border-gray-300 p-3 rounded bg-gray-200">
+                {teacher.profilePhoto && <img src={teacher.profilePhoto} alt="Profile" className="w-12 h-12 rounded-full mr-3 border border-gray-500" />}
+                <div className="text-gray-900">
+                  <strong>{teacher.name}</strong> ({teacher.email}) - {teacher.department} ({teacher.position})
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </div>

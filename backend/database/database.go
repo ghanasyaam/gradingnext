@@ -9,7 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// ✅ Ensure DB is exported (capitalized)
 var DB *gorm.DB
 
 func InitDB() {
@@ -20,7 +19,6 @@ func InitDB() {
 		log.Fatal("❌ Failed to connect to database:", err)
 	}
 
-	// ✅ AutoMigrate to ensure tables exist
 	err = DB.AutoMigrate(&models.Event{})
 	if err != nil {
 		log.Fatal("❌ Migration failed:", err)
