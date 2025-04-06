@@ -13,7 +13,7 @@ interface Teacher {
 }
 
 const axiosInstance = axios.create({
-  baseURL: '/api', // Ensure Next.js proxy is set up in next.config.js
+  baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
   timeout: 5000,
 });
@@ -146,5 +146,6 @@ const TeacherRegPage: React.FC = () => {
     </div>
   );
 };
+
 
 export default TeacherRegPage;

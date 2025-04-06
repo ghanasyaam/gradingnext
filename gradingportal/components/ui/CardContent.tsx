@@ -6,6 +6,11 @@ interface CardContentProps {
 }
 
 export const CardContent: React.FC<CardContentProps> = ({ children, className = "" }) => {
-  return <div className={`p-4 text-gray-900 ${className}`}>{children}</div>;
+  return (
+    <div 
+      className={`p-6 text-gray-800 transition-all duration-200 ${className}`}
+    >
+      {children}
+    </div>
+  );
 };
-

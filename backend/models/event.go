@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -11,7 +12,8 @@ import (
 
 type Role struct {
 	Role      string   `json:"role"`
-	Points    string   `json:"points"`
+	Points    int      `json:"points"`
+	Headcount int      `json:"headcount"`
 	TeacherID []string `json:"teachers"`
 }
 
@@ -26,22 +28,25 @@ type Event struct {
 }
 
 func (e *Event) AfterFind(tx *gorm.DB) (err error) {
+	var rawRoles []map[string]interface{}
+	if err := json.Unmarshal(e.Roles, &rawRoles); err != nil {
+		fmt.Println("Error unmarshalling roles:", err)
+		return err
+	}
+
 	var roles []Role
-	if len(e.Roles) > 0 {
-		if err := json.Unmarshal(e.Roles, &roles); err != nil {
-			fmt.Println("Error unmarshalling roles:", err)
-			return err
+	for _, rawRole := range rawRoles {
+		role := Role{
+			Role:      convertToString(rawRole["role"]),
+			Points:    convertToInt(rawRole["points"]),
+			Headcount: convertToInt(rawRole["headcount"]),
+			TeacherID: convertToStringSlice(rawRole["teachers"]),
 		}
+		roles = append(roles, role)
 	}
 
-	for i := range roles {
-		if roles[i].TeacherID == nil {
-			roles[i].TeacherID = []string{}
-		}
-	}
-
-	e.Roles, err = json.Marshal(roles)
-	return err
+	e.Roles, _ = json.Marshal(roles)
+	return nil
 }
 
 func GetEventsHandler(db *gorm.DB) gin.HandlerFunc {
@@ -51,9 +56,6 @@ func GetEventsHandler(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve events"})
 			return
 		}
-
-		fmt.Println("Sending events:", events)
-
 		c.JSON(http.StatusOK, events)
 	}
 }
@@ -78,13 +80,88 @@ func UpdateEventHandler(db *gorm.DB) gin.HandlerFunc {
 		event.Date = updatedEvent.Date
 		event.Time = updatedEvent.Time
 		event.Description = updatedEvent.Description
-		event.Roles = updatedEvent.Roles
+
+		if len(updatedEvent.Roles) > 0 {
+			var updatedRoles []Role
+			if err := json.Unmarshal(updatedEvent.Roles, &updatedRoles); err == nil {
+				var existingRoles []Role
+				_ = json.Unmarshal(event.Roles, &existingRoles)
+
+				for i := range updatedRoles {
+					if updatedRoles[i].Headcount == 0 {
+						for _, existingRole := range existingRoles {
+							if updatedRoles[i].Role == existingRole.Role {
+								updatedRoles[i].Headcount = existingRole.Headcount
+								break
+							}
+						}
+					}
+				}
+				event.Roles, _ = json.Marshal(updatedRoles)
+			}
+		}
 
 		if err := db.Save(&event).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update event"})
 			return
 		}
 
-		c.JSON(http.StatusOK, event)
+		c.JSON(http.StatusOK, gin.H{
+			"event":   event,
+			"message": "Event updated successfully",
+		})
 	}
+}
+
+//
+// ─── HELPER FUNCTIONS FOR TYPE CONVERSION ──────────────────────────────────────
+//
+
+func convertToString(input interface{}) string {
+	switch v := input.(type) {
+	case string:
+		return v
+	case fmt.Stringer:
+		return v.String()
+	case float64:
+		return strconv.Itoa(int(v))
+	case int:
+		return strconv.Itoa(v)
+	default:
+		return ""
+	}
+}
+
+func convertToInt(input interface{}) int {
+	switch v := input.(type) {
+	case float64:
+		return int(v)
+	case int:
+		return v
+	case string:
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			return 0
+		}
+		return i
+	default:
+		return 0
+	}
+}
+
+func convertToStringSlice(input interface{}) []string {
+	if input == nil {
+		return []string{}
+	}
+
+	var strSlice []string
+	switch v := input.(type) {
+	case []string:
+		return v
+	case []interface{}:
+		for _, val := range v {
+			strSlice = append(strSlice, convertToString(val))
+		}
+	}
+	return strSlice
 }

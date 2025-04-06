@@ -25,9 +25,8 @@ export default function Leaderboard() {
         try {
             const response = await axios.get<Teacher[]>('http://localhost:8081/teachers');
             let teachersData = response.data || [];
-            console.log("Fetched Teachers:", teachersData); // Debugging: Log fetched data
+            console.log("Fetched Teachers:", teachersData);
     
-            // Sort teachers by points in descending order
             teachersData.sort((a, b) => b.points - a.points);
     
             setTeachers(teachersData);
